@@ -68,18 +68,15 @@ jobs:
           
           # 1. Dodaj zaktualizowany plik i utwórz commit
           git add action.yml
+        
+          git commit -m "chore(release): Update action.yml and release $NEW_TAG [skip ci]"
           
-          if ! git diff --cached --exit-code; then
-            git commit -m "chore(release): Update action.yml and release $NEW_TAG [skip ci]"
+          # 2. Utwórz nowy tag (musi być stworzony po commicie, żeby wskazywał na ten commit!)
+          git tag $NEW_TAG -f # Opcjonalnie: -f jeśli tag już istnieje, ale lepiej stworzyć go po commicie.
           
-            # 2. Utwórz nowy tag (musi być stworzony po commicie, żeby wskazywał na ten commit!)
-            git tag $NEW_TAG -f # Opcjonalnie: -f jeśli tag już istnieje, ale lepiej stworzyć go po commicie.
-          
-            # 3. Wypchnij commit ORAZ tag
-            git push origin main
-            git push origin $NEW_TAG
-          else
-            echo "Brak zmian w action.yml. Nie tworzę nowego tagu/commita."
-          fi
+          # 3. Wypchnij commit ORAZ tag
+          git push origin main
+          git push origin $NEW_TAG
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
