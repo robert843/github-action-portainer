@@ -6,7 +6,7 @@ runs:
   using: 'docker'
   image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.19'
   args:
-    - --portainer-host=${{ inputs.portainer-host }}
+    - --portainer-url=${{ inputs.portainer-host }}
     - --stack-name=${{ inputs.stack-name }}
     - --endpoint-name=${{ inputs.endpoint-name }}
     - --deployment-method=${{ inputs.deployment-method }}

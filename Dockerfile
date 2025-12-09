@@ -16,8 +16,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 COPY --from=builder /portainer-deploy .
-COPY entrypoint.sh .
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x portainer-deploy
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+ENTRYPOINT ["/root/portainer-deploy"]
