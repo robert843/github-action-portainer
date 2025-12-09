@@ -1,5 +1,5 @@
 name: 'Portainer Stack Deploy'
-description: 'Deploy or update Docker Swarm stacks on Portainer using Git repository or string content.'
+description: 'Deploy or update Docker Swarm stacks on Portainer using Git repository or string content. Supports API Key/Username+Password auth and access control.'
 author: 'robert843'
 
 runs:
@@ -7,30 +7,38 @@ runs:
   image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.14'
   args:
     - --portainer-host=${{ inputs.portainer-host }}
-    - --api-key=${{ inputs.api-key }}
-    - --username=${{ inputs.username }}
-    - --password=${{ inputs.password }}
     - --stack-name=${{ inputs.stack-name }}
     - --endpoint-name=${{ inputs.endpoint-name }}
     - --deployment-method=${{ inputs.deployment-method }}
-    - --repository-url=${{ inputs.repository-url }}
-    - --repository-reference=${{ inputs.repository-reference }}
-    - --repository-username=${{ inputs.repository-username }}
-    - --repository-password=${{ inputs.repository-password }}
-    - --compose-file-path=${{ inputs.compose-file-path }}
-    - --stack-file=${{ inputs.stack-file }}
-    - --environment-variables=${{ inputs.environment-variables }}
     - --prune=${{ inputs.prune }}
     - --pull-image=${{ inputs.pull-image }}
     - --access=${{ inputs.access }}
-    - --teams=${{ inputs.teams }}
+    - --use-https=${{ inputs.use-https }}
+    - ${{ inputs.api-key && format('--api-key={0}', inputs.api-key) || '' }}
+    - ${{ inputs.username && format('--username={0}', inputs.username) || '' }}
+    - ${{ inputs.password && format('--password={0}', inputs.password) || '' }}
+    - ${{ inputs.repository-url && format('--repository-url={0}', inputs.repository-url) || '' }}
+    - ${{ inputs.repository-reference && format('--repository-reference={0}', inputs.repository-reference) || '' }}
+    - ${{ inputs.repository-username && format('--repository-username={0}', inputs.repository-username) || '' }}
+    - ${{ inputs.repository-password && format('--repository-password={0}', inputs.repository-password) || '' }}
+    - ${{ inputs.compose-file-path && format('--compose-file-path={0}', inputs.compose-file-path) || '' }}
+    - ${{ inputs.stack-file && format('--stack-file={0}', inputs.stack-file) || '' }}
+    - ${{ inputs.environment-variables && format('--environment-variables={0}', inputs.environment-variables) || '' }}
+    - ${{ inputs.auto-update && format('--auto-update={0}', inputs.auto-update) || '' }}
+    - ${{ inputs.auto-update-interval && format('--auto-update-interval={0}', inputs.auto-update-interval) || '' }}
+    - ${{ inputs.teams && format('--teams={0}', inputs.teams) || '' }}
 
 inputs:
+  # --- CONNECTION / AUTH ---
   portainer-host:
-    description: 'Portainer host (e.g. your.portainer.io)'
+    description: 'Portainer host (e.g. your.portainer.io). Include protocol if not using HTTPS.'
     required: true
+  use-https:
+    description: 'Use HTTPS to connect to Portainer.'
+    required: false
+    default: 'true'
   api-key:
-    description: 'Portainer API Key (X-API-Key) or leave empty to use username/password.'
+    description: 'Portainer API Key (X-API-Key). If not provided, username/password will be used.'
     required: false
   username:
     description: 'Portainer username (if api-key is not used).'
@@ -38,30 +46,48 @@ inputs:
   password:
     description: 'Portainer password (if api-key is not used).'
     required: false
+
+  # --- STACK & DEPLOYMENT ---
   stack-name:
-    description: 'Name of the stack to create or update.'
+    description: 'Stack name to create or update.'
     required: true
   endpoint-name:
-    description: 'Name of the Portainer endpoint to deploy to (e.g., "local").'
+    description: 'Endpoint name to deploy to (will be resolved to ID).'
     required: true
     default: 'local'
   deployment-method:
-    description: 'Deployment method: repository or string'
+    description: 'Deployment method: repository | string.'
     required: true
     default: 'repository'
+
+  # --- REPOSITORY MODE ---
   repository-url:
-    description: 'Git repository URL for repository mode.'
+    description: 'Git repository URL (for repository mode).'
     required: false
+  repository-reference:
+    description: 'Repository ref (branch/tag/commit). Default: refs/heads/main.'
+    required: false
+    default: 'refs/heads/main'
   repository-username:
-    description: 'Username for private repository access (e.g., GitHub username).'
+    description: 'Username for private repository access (if required).'
     required: false
   repository-password:
-    description: 'Password or Personal Access Token (PAT) for private repository access.'
+    description: 'Password or PAT for private repository access (if required).'
     required: false
   compose-file-path:
-    description: 'Path to the docker-compose file (relative to the repository root).'
+    description: 'Compose file path in repository (for repository mode).'
     required: false
-    default: 'docker-compose.yml' # Dodajmy domyślną wartość dla wygody
+    default: 'docker-compose.yml'
+
+  # --- STRING MODE ---
+  stack-file:
+    description: 'Local stack file path to read content from (for string mode).'
+    required: false
+
+  # --- OPTIONS ---
+  environment-variables:
+    description: 'JSON array of environment variables, e.g. [{"name":"FOO","value":"bar"}].'
+    required: false
   prune:
     description: 'Set to true to prune unused services on update.'
     required: false
@@ -70,8 +96,18 @@ inputs:
     description: 'Set to true to pull latest images on update.'
     required: false
     default: 'true'
+  auto-update:
+    description: 'Enable auto-update for repository stacks (true|false).'
+    required: false
+    default: 'false'
+  auto-update-interval:
+    description: 'Auto-update interval (e.g. 5m). Only relevant if auto-update is true.'
+    required: false
+    default: '5m'
+
+  # --- ACCESS CONTROL ---
   access:
-    description: 'Access control: public | teams | admin'
+    description: 'Access mode: public | teams | admin.'
     required: false
     default: 'admin'
   teams:
