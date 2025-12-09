@@ -1,9 +1,6 @@
 name: Continuous Deployment do Portainer
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch: # Opcjonalnie: Umożliwia ręczne uruchomienie
 
 jobs:
@@ -21,7 +18,7 @@ jobs:
       - name: Deploy Stos do Portainera 🚀
         # Użycie Twojej Akcji z odpowiednim tagiem wersji
         # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
-        uses: robert843/github-action-portainer@v0.0.14
+        uses: robert843/github-action-portainer@v0.0.15
 
         with:
           # --- Parametry Portainera (Uwierzytelnianie) ---
