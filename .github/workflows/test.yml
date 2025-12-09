@@ -21,7 +21,7 @@ jobs:
       - name: Deploy Stos do Portainera 🚀
         # Użycie Twojej Akcji z odpowiednim tagiem wersji
         # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
-        uses: twoja-org/nazwa-twojego-repozytorium@v1.2.4
+        uses: robert843/github-action-portainer@v0.0.9
 
         with:
           # --- Parametry Portainera (Uwierzytelnianie) ---

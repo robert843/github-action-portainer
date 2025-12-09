@@ -58,6 +58,10 @@ inputs:
   repository-password:
     description: 'Password or Personal Access Token (PAT) for private repository access.'
     required: false
+  compose-file-path:
+    description: 'Path to the docker-compose file (relative to the repository root).'
+    required: false
+    default: 'docker-compose.yml' # Dodajmy domyślną wartość dla wygody
   prune:
     description: 'Set to true to prune unused services on update.'
     required: false
