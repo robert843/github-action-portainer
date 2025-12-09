@@ -23,11 +23,11 @@ import (
 
 var (
 	// connection / auth
-	portainerHost string
-	useHTTPS      bool
-	apiKey        string
-	username      string
-	password      string
+	portainerUrl string
+	useHTTPS     bool
+	apiKey       string
+	username     string
+	password     string
 
 	// stack
 	stackName        string
@@ -132,7 +132,7 @@ func main() {
 	}
 
 	// connection
-	root.Flags().StringVar(&portainerHost, "portainer-host", "", "Portainer host (host:port or hostname). Required")
+	root.Flags().StringVar(&portainerUrl, "portainer-url", "", "Portainer host (host:port or hostname). Required")
 	root.Flags().BoolVar(&useHTTPS, "use-https", true, "Use https to connect to Portainer")
 	root.Flags().StringVar(&apiKey, "api-key", "", "Portainer API key (X-API-Key). If not provided, username+password will be used")
 	root.Flags().StringVar(&username, "username", "", "Portainer username (used when api-key not provided)")
@@ -168,11 +168,11 @@ func main() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	if portainerHost == "" || stackName == "" {
+	if portainerUrl == "" || stackName == "" {
 		log.Fatal("required flags: --portainer-host and --stack-name")
 	}
 
-	baseURL := fmt.Sprintf("%s/api", portainerHost)
+	baseURL := fmt.Sprintf("%s/api", portainerUrl)
 
 	// auth - choose API key if provided else username/password
 	var authHeaderKey, authHeaderValue string
