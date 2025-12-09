@@ -50,9 +50,9 @@ var (
 	autoUpdateInterval string
 
 	// access
-	accessMode string // public|teams|admin
-	teamName   string
-
+	accessMode      string // public|teams|admin
+	teamName        string
+	additionalFiles []string
 	// runtime
 	httpClient = &http.Client{Timeout: 30 * time.Second}
 )
@@ -85,6 +85,7 @@ type StackCreateRequest struct {
 	Env                      []EnvVar          `json:"env,omitempty"`
 	SwarmID                  string            `json:"swarmID,omitempty"`
 	AutoUpdate               *AutoUpdateConfig `json:"autoUpdate,omitempty"`
+	AdditionalFiles          []string          `json:"additionalFiles,omitempty"`
 }
 
 type StackUpdateRequest struct {
@@ -162,6 +163,7 @@ func main() {
 	root.Flags().StringVar(&accessMode, "access", "admin", "Access: public | teams | admin")
 	root.Flags().StringVar(&teamName, "teams", "", "Teams name (used when --access=teams)")
 
+	root.Flags().StringArrayVar(&additionalFiles, "additional-files", nil, "Additional compose override files (paths in repository)")
 	if err := root.Execute(); err != nil {
 		log.Fatal(err)
 	}
@@ -414,7 +416,9 @@ func createStackGit(baseURL, authKey, authVal string, endpointID int, env []EnvV
 		ComposeFile:             composeFilePath,
 		Env:                     env,
 		SwarmID:                 swarmID,
+		AdditionalFiles:         additionalFiles,
 	}
+	fmt.Println(req)
 	if repositoryUser != "" && repositoryPass != "" {
 		req.RepositoryAuthentication = true
 		req.RepositoryUsername = repositoryUser

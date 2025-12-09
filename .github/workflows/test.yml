@@ -19,8 +19,7 @@ jobs:
         id: portainer_deploy
         # Użycie Twojej Akcji z odpowiednim tagiem wersji
         # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
-        uses: robert843/github-action-portainer@v0.0.24
-
+        uses: robert843/github-action-portainer@v1.0.0
         with:
           # --- Parametry Portainera (Uwierzytelnianie) ---
           portainer-url: 'http://localhost:9000'
@@ -29,12 +28,13 @@ jobs:
           # LUB: password: ${{ secrets.PORTAINER_PASS }}
 
           # --- Parametry Wdrożenia Stosu ---
-          stack-name: moj-serwis-backend
-          endpoint-name: Produkcja-Swarm-Cluster # Używamy nazwy endpointu
+          stack-name: 'moj-serwis-${{ github.ref_name }}'
+          endpoint-name: 'bos-docker-01' # Używamy nazwy endpointu
           deployment-method: repository
 
           # --- Parametry Repozytorium Git (Prywatne) ---
           repository-url: ${{ github.server_url }}/${{ github.repository }}
+          repository-reference: ${{ github.ref }}
           compose-file-path: docker-compose.yml # Jeśli plik ma inną nazwę
           access: 'public'
       - name: 💬 Dodanie komentarza o powodzeniu (URL)

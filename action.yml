@@ -26,6 +26,7 @@ runs:
     - ${{ inputs.auto-update && format('--auto-update={0}', inputs.auto-update) || '' }}
     - ${{ inputs.auto-update-interval && format('--auto-update-interval={0}', inputs.auto-update-interval) || '' }}
     - ${{ inputs.teams && format('--teams={0}', inputs.teams) || '' }}
+    - ${{ inputs.additional-files && format('--additional-files={0}', inputs.additional-files) || '' }}
 
 inputs:
   # --- CONNECTION / AUTH ---
@@ -73,7 +74,10 @@ inputs:
     description: 'Compose file path in repository (for repository mode).'
     required: false
     default: 'docker-compose.yml'
-
+  additional-files:
+    description: "Comma-separated list of additional compose files (e.g. file1.yml,file2.yml)."
+    required: false
+    default: ""
   # --- STRING MODE ---
   stack-file:
     description: 'Local stack file path to read content from (for string mode).'
