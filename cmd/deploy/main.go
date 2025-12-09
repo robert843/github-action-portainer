@@ -169,7 +169,7 @@ func main() {
 
 func run(cmd *cobra.Command, args []string) {
 	if portainerUrl == "" || stackName == "" {
-		log.Fatal("required flags: --portainer-host and --stack-name")
+		log.Fatal("required flags: --portainer-url and --stack-name")
 	}
 
 	baseURL := fmt.Sprintf("%s/api", portainerUrl)
