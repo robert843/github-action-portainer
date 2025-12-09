@@ -15,7 +15,8 @@ jobs:
       - name: Checkout Code (Wymagane tylko, jeśli używamy plików z tego repozytorium)
         uses: actions/checkout@v4
 
-      - name: Deploy Stos do Portainera 🚀
+      - name: 🚀 Deploy Stos do Portainera
+        id: portainer_deploy
         # Użycie Twojej Akcji z odpowiednim tagiem wersji
         # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
         uses: robert843/github-action-portainer@v0.0.22
@@ -33,11 +34,13 @@ jobs:
           deployment-method: repository
 
           # --- Parametry Repozytorium Git (Prywatne) ---
-          repository-url: https://github.com/moja-firma/prywatne-repo-app.git
-          compose-file-path: docker-compose-prod.yml # Jeśli plik ma inną nazwę
-
-          # --- Opcjonalne Opcje Swarm ---
-          prune: 'true' # Wymuś usunięcie starych usług
-          pull-image: 'true' # Wymuś pobranie najnowszych obrazów
-          access: 'team'
-          teams: 'devops,backend-team'
+          repository-url: ${{ github.server_url }}/${{ github.repository }}
+          compose-file-path: docker-compose.yml # Jeśli plik ma inną nazwę
+          access: 'public'
+      - name: 💬 Dodanie komentarza o powodzeniu (URL)
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number || github.sha }}
+          body: |
+            Stack **${{ steps.portainer_deploy.with.stack-name }}** został pomyślnie zaktualizowany...
