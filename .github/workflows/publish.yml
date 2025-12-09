@@ -58,7 +58,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      # 6. Commit i Push Zmiany w action.yml ORAZ LOKALNY TAG
+
+      - name: Patch action.yml with Full Docker Image Tag
+        run: |
+          # W przykładzie używamy stałej ścieżki: ghcr.io/robert843/github-action-portainer
+          REPO_PATH="ghcr.io/robert843/github-action-portainer" 
+          NEW_IMAGE_REF="docker:\/\/$REPO_PATH:${{ steps.tag_version.outputs.new_tag }}"
+          # Komenda podmiany:
+          sed -i -E "s#(image: 'docker:\/\/$REPO_PATH:).+'#image: '$NEW_IMAGE_REF'#" action.yml
       - name: Commit and Push update with tag
         run: |
           NEW_TAG=${{ steps.tag_version.outputs.new_tag }}
@@ -68,15 +75,18 @@ jobs:
           
           # 1. Dodaj zaktualizowany plik i utwórz commit
           git add action.yml
-        
-          git commit -m "chore(release): Update action.yml and release $NEW_TAG [skip ci]"
           
-          # 2. Utwórz nowy tag (musi być stworzony po commicie, żeby wskazywał na ten commit!)
-          git tag $NEW_TAG -f # Opcjonalnie: -f jeśli tag już istnieje, ale lepiej stworzyć go po commicie.
+          if ! git diff --cached --exit-code; then
+            git commit -m "chore(release): Update action.yml and release $NEW_TAG [skip ci]"
           
-          # 3. Wypchnij commit ORAZ tag
-          git push origin main
-          git push origin $NEW_TAG
-
+            # 2. Utwórz nowy tag (musi być stworzony po commicie, żeby wskazywał na ten commit!)
+            git tag $NEW_TAG -f # Opcjonalnie: -f jeśli tag już istnieje, ale lepiej stworzyć go po commicie.
+          
+            # 3. Wypchnij commit ORAZ tag
+            git push origin main
+            git push origin $NEW_TAG
+          else
+            echo "Brak zmian w action.yml. Nie tworzę nowego tagu/commita."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
