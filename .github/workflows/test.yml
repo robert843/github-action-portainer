@@ -19,11 +19,11 @@ jobs:
         id: portainer_deploy
         # Użycie Twojej Akcji z odpowiednim tagiem wersji
         # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
-        uses: robert843/github-action-portainer@v0.0.22
+        uses: robert843/github-action-portainer@v0.0.24
 
         with:
           # --- Parametry Portainera (Uwierzytelnianie) ---
-          portainer-host: 'http://localhost:9000'
+          portainer-url: 'http://localhost:9000'
           api-key: 'test'
           # LUB: username: ${{ secrets.PORTAINER_USER }}
           # LUB: password: ${{ secrets.PORTAINER_PASS }}

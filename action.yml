@@ -6,7 +6,7 @@ runs:
   using: 'docker'
   image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.23'
   args:
-    - --portainer-url=${{ inputs.portainer-host }}
+    - --portainer-url=${{ inputs.portainer-url }}
     - ${{ inputs.prune && format('--access={0}', inputs.prune) || '' }}
     - ${{ inputs.stack-name && format('--stack-name={0}', inputs.stack-name) || '' }}
     - ${{ inputs.endpoint-name && format('--endpoint-name={0}', inputs.endpoint-name) || '' }}
@@ -29,8 +29,8 @@ runs:
 
 inputs:
   # --- CONNECTION / AUTH ---
-  portainer-host:
-    description: 'Portainer host (e.g. your.portainer.io). Include protocol if not using HTTPS.'
+  portainer-url:
+    description: 'Portainer url (e.g. https://your.portainer.io).'
     required: true
   api-key:
     description: 'Portainer API Key (X-API-Key). If not provided, username/password will be used.'
