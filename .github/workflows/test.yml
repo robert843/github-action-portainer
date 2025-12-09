@@ -1,0 +1,46 @@
+name: Continuous Deployment do Portainer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Opcjonalnie: Umożliwia ręczne uruchomienie
+
+jobs:
+  deploy-to-portainer:
+    runs-on: ubuntu-latest
+
+    # ⚠️ Ważne: Wymagane uprawnienia do pobrania tokenu PAT z Secrets
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code (Wymagane tylko, jeśli używamy plików z tego repozytorium)
+        uses: actions/checkout@v4
+
+      - name: Deploy Stos do Portainera 🚀
+        # Użycie Twojej Akcji z odpowiednim tagiem wersji
+        # Użytkownik musi zmienić 'twoja-org/nazwa-twojego-repozytorium' na poprawną ścieżkę
+        uses: twoja-org/nazwa-twojego-repozytorium@v1.2.4
+
+        with:
+          # --- Parametry Portainera (Uwierzytelnianie) ---
+          portainer-host: 'http://localhost:9000'
+          api-key: 'test'
+          # LUB: username: ${{ secrets.PORTAINER_USER }}
+          # LUB: password: ${{ secrets.PORTAINER_PASS }}
+
+          # --- Parametry Wdrożenia Stosu ---
+          stack-name: moj-serwis-backend
+          endpoint-name: Produkcja-Swarm-Cluster # Używamy nazwy endpointu
+          deployment-method: repository
+
+          # --- Parametry Repozytorium Git (Prywatne) ---
+          repository-url: https://github.com/moja-firma/prywatne-repo-app.git
+          compose-file-path: docker-compose-prod.yml # Jeśli plik ma inną nazwę
+
+          # --- Opcjonalne Opcje Swarm ---
+          prune: 'true' # Wymuś usunięcie starych usług
+          pull-image: 'true' # Wymuś pobranie najnowszych obrazów
+          access: 'team'
+          teams: 'devops,backend-team'
