@@ -2,11 +2,9 @@ name: 'Portainer Stack Deploy'
 description: 'Deploy or update Docker Swarm stacks on Portainer using Git repository or string content.'
 author: 'robert843'
 
-# Definicja, że jest to akcja kontenerowa
 runs:
   using: 'docker'
-  image: 'Dockerfile'
-  # Przekazanie flag jako argumenty do ENTRYPOINT w Dockerfile
+  image: 'docker://ghcr.io/${{ github.repository }}:${{ github.action_ref }}'
   args:
     - --portainer-host=${{ inputs.portainer-host }}
     - --api-key=${{ inputs.api-key }}
@@ -27,7 +25,6 @@ runs:
     - --access=${{ inputs.access }}
     - --teams=${{ inputs.teams }}
 
-# Definicja wszystkich wejść
 inputs:
   portainer-host:
     description: 'Portainer host (e.g. your.portainer.io)'
@@ -52,7 +49,6 @@ inputs:
     description: 'Deployment method: repository or string'
     required: true
     default: 'repository'
-  # ... (Definicje pozostałych flag jako inputs)
   repository-url:
     description: 'Git repository URL for repository mode.'
     required: false
@@ -62,8 +58,6 @@ inputs:
   repository-password:
     description: 'Password or Personal Access Token (PAT) for private repository access.'
     required: false
-
-  # Dodatkowe flagi
   prune:
     description: 'Set to true to prune unused services on update.'
     required: false
