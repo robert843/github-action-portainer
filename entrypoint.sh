@@ -3,7 +3,7 @@ set -e
 
 # Prawidłowa ścieżka do binarki Go (zakładając, że została umieszczona w głównym katalogu)
 # Jeśli binarka jest w /portainer-deploy, użyj /portainer-deploy
-BIN_PATH="/portainer-deploy"
+BIN_PATH="/root/portainer-deploy"
 
 # Weryfikacja: Upewnij się, że binarka istnieje
 if [ ! -f "$BIN_PATH" ]; then
