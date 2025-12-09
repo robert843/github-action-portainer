@@ -4,7 +4,7 @@ author: 'robert843'
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.13'
+  image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.14'
   args:
     - --portainer-host=${{ inputs.portainer-host }}
     - --api-key=${{ inputs.api-key }}
