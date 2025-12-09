@@ -7,13 +7,12 @@ runs:
   image: 'docker://ghcr.io/robert843/github-action-portainer:v0.0.20'
   args:
     - --portainer-url=${{ inputs.portainer-host }}
-    - --stack-name=${{ inputs.stack-name }}
-    - --endpoint-name=${{ inputs.endpoint-name }}
-    - --deployment-method=${{ inputs.deployment-method }}
-    - --prune=${{ inputs.prune }}
-    - --pull-image=${{ inputs.pull-image }}
-    - --access=${{ inputs.access }}
-    - --use-https=${{ inputs.use-https }}
+    - ${{ inputs.prune && format('--access={0}', inputs.prune) || '' }}
+    - ${{ inputs.stack-name && format('--stack-name={0}', inputs.stack-name) || '' }}
+    - ${{ inputs.endpoint-name && format('--endpoint-name={0}', inputs.endpoint-name) || '' }}
+    - ${{ inputs.deployment-method && format('--deployment-method={0}', inputs.deployment-method) || '' }}
+    - ${{ inputs.pull-image && format('--pull-image={0}', inputs.pull-image) || '' }}
+    - ${{ inputs.access && format('--access={0}', inputs.access) || '' }}
     - ${{ inputs.api-key && format('--api-key={0}', inputs.api-key) || '' }}
     - ${{ inputs.username && format('--username={0}', inputs.username) || '' }}
     - ${{ inputs.password && format('--password={0}', inputs.password) || '' }}
@@ -33,10 +32,6 @@ inputs:
   portainer-host:
     description: 'Portainer host (e.g. your.portainer.io). Include protocol if not using HTTPS.'
     required: true
-  use-https:
-    description: 'Use HTTPS to connect to Portainer.'
-    required: false
-    default: 'true'
   api-key:
     description: 'Portainer API Key (X-API-Key). If not provided, username/password will be used.'
     required: false
