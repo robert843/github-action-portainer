@@ -1,6 +1,5 @@
 name: Publish Portainer Deploy Action
 
-# Zmień ten blok
 on:
   push:
     branches:
@@ -10,39 +9,39 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Wymagane do tworzenia tagu, commitowania i publikowania w GHCR
       packages: write # Wymagane do publikowania w GHCR
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Konieczne, aby akcja tagująca widziała historię
+
+      # 1. Automatyczne tworzenie nowego tagu Git (np. v1.0.1)
       - name: Push version tag 🏷️
         id: tag_version
         uses: anothrNick/github-tag-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: patch # Automatyczne podbicie wersji (np. 1.0.0 -> 1.0.1)
-          WITH_V: true # Dodaje prefiks 'v' do tagu (np. v1.0.1)
-      # --- Krok 2: Ekstrakcja metadanych (użycie new_tag) ---
+          DEFAULT_BUMP: patch
+          WITH_V: true
+
+      # 2. Ekstrakcja metadanych dla Dockera (z użyciem nowego tagu)
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
-          # Ważne: Odwołujemy się do wyjścia 'new_tag' z poprzedniego kroku
           tags: |
-            type=raw,value=${{ steps.tag_version.outputs.new_tag }} # Główny tag (np. v1.2.4)
-            type=semver,pattern={{major}},value=${{ steps.tag_version.outputs.new_tag }} # Tag główny (np. v1)
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag_version.outputs.new_tag }} # Tag minor (np. v1.2)
+            type=raw,value=${{ steps.tag_version.outputs.new_tag }} # Pełny tag obrazu (np. :v1.0.1)
+            type=semver,pattern={{major}},value=${{ steps.tag_version.outputs.new_tag }} # Tag główny (np. :1)
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag_version.outputs.new_tag }} # Tag minor (np. :1.0)
             
-            # Zachowaj tagowanie 'latest' dla gałęzi main
+            # Tag 'latest' dla najnowszego pusha do main
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            
-            # Usuwamy tagi oparte na SHA, jeśli używamy tylko new_tag
 
-      # --- Krok 3: Budowanie i publikacja obrazu ---
+      # 3. Logowanie do GHCR
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -50,6 +49,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 4. Budowanie i publikacja obrazu
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -57,3 +57,40 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # 5. Patchowanie action.yml z nowym tagiem
+      - name: Patch action.yml with Full Docker Image Tag
+        run: |
+          # Pełny nowy tag (np. v1.0.1)
+          FULL_TAG=${{ steps.tag_version.outputs.new_tag }}
+          # Ścieżka do GHCR: ghcr.io/org/repo
+          REPO_PATH="ghcr.io/${{ github.repository }}"
+          # Nowy pełny ref: docker://ghcr.io/org/repo:v1.0.1
+          NEW_IMAGE_REF="docker:\/\/$REPO_PATH:$FULL_TAG"
+          
+          # Używamy sed do podmiany referencji 'image:'
+          # Znajduje linię z referencją do obrazu i aktualizuje tag na pełny
+          # Wymaga, by poprzednia referencja miała postać: image: 'docker://...:<stary_tag>'
+          sed -i -E "s#(image: 'docker:\/\/$REPO_PATH:).+'#image: '$NEW_IMAGE_REF'#" action.yml
+
+      # 6. Commit i Push Zmiany w action.yml (Bez PAT)
+      - name: Commit and Push action.yml update
+        run: |
+          # Użycie bota GitHub do tożsamości
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Sprawdzenie i dodanie zmian
+          git add action.yml
+          
+          # Sprawdzenie, czy są zmiany do commitowania (exit code 0 jeśli są zmiany, 1 jeśli nie)
+          if ! git diff --cached --exit-code; then
+            # Dodanie [skip ci] jest kluczowe, by ten commit nie wywołał pętli workflow
+            git commit -m "chore(release): Update action.yml to use image tag ${{ steps.tag_version.outputs.new_tag }} [skip ci]"
+          
+            # Push z użyciem tokena wbudowanego w URL
+            # Wymaga 'contents: write'
+            git push origin main
+          else
+            echo "Brak zmian w action.yml do commitowania, pomijam commit."
+          fi
