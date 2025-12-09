@@ -51,14 +51,13 @@ set_arg "--stack-file" "$INPUT_STACK_FILE"
 set_arg "--environment-variables" "$INPUT_ENVIRONMENT_VARIABLES"
 set_arg "--auto-update-interval" "$INPUT_AUTO_UPDATE_INTERVAL"
 
-# Flagi logiczne (przekazywane zawsze, ponieważ mają domyślną wartość)
-ARGS="$ARGS --prune=\"$INPUT_PRUNE\""
-ARGS="$ARGS --pull-image=\"$INPUT_PULL_IMAGE\""
-ARGS="$ARGS --use-https=\"$INPUT_USE_HTTPS\""
-ARGS="$ARGS --auto-update=\"$INPUT_AUTO_UPDATE\""
+set_arg "--prune" "$INPUT_PRUNE"
+set_arg "--pull-image" "$INPUT_PULL_IMAGE"
+set_arg "--use-https" "$INPUT_USE_HTTPS"
+set_arg "--auto-update" "$INPUT_AUTO_UPDATE"
 
 # ------------------- Kontrola Dostępu -------------------
-ARGS="$ARGS --access=\"$INPUT_ACCESS\""
+set_arg "--access" "$INPUT_ACCESS"
 set_arg "--teams" "$INPUT_TEAMS" # Nazwa flagi to --teams (lub --team, w zależności od binarki Go)
 
 # ------------------- WYKONANIE -------------------
