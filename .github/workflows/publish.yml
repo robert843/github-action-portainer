@@ -1,0 +1,59 @@
+name: Publish Portainer Deploy Action
+
+# Zmień ten blok
+on:
+  push:
+    branches:
+      - main # Uruchamia się przy każdym pushu do main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Wymagane do publikowania w GHCR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push version tag 🏷️
+        id: tag_version
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch # Automatyczne podbicie wersji (np. 1.0.0 -> 1.0.1)
+          WITH_V: true # Dodaje prefiks 'v' do tagu (np. v1.0.1)
+      # --- Krok 2: Ekstrakcja metadanych (użycie new_tag) ---
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          # Ważne: Odwołujemy się do wyjścia 'new_tag' z poprzedniego kroku
+          tags: |
+            type=raw,value=${{ steps.tag_version.outputs.new_tag }} # Główny tag (np. v1.2.4)
+            type=semver,pattern={{major}},value=${{ steps.tag_version.outputs.new_tag }} # Tag główny (np. v1)
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag_version.outputs.new_tag }} # Tag minor (np. v1.2)
+            
+            # Zachowaj tagowanie 'latest' dla gałęzi main
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            
+            # Usuwamy tagi oparte na SHA, jeśli używamy tylko new_tag
+
+      # --- Krok 3: Budowanie i publikacja obrazu ---
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

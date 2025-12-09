@@ -1,0 +1,81 @@
+name: 'Portainer Stack Deploy'
+description: 'Deploy or update Docker Swarm stacks on Portainer using Git repository or string content.'
+author: 'robert843'
+
+# Definicja, że jest to akcja kontenerowa
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  # Przekazanie flag jako argumenty do ENTRYPOINT w Dockerfile
+  args:
+    - --portainer-host=${{ inputs.portainer-host }}
+    - --api-key=${{ inputs.api-key }}
+    - --username=${{ inputs.username }}
+    - --password=${{ inputs.password }}
+    - --stack-name=${{ inputs.stack-name }}
+    - --endpoint-name=${{ inputs.endpoint-name }}
+    - --deployment-method=${{ inputs.deployment-method }}
+    - --repository-url=${{ inputs.repository-url }}
+    - --repository-reference=${{ inputs.repository-reference }}
+    - --repository-username=${{ inputs.repository-username }}
+    - --repository-password=${{ inputs.repository-password }}
+    - --compose-file-path=${{ inputs.compose-file-path }}
+    - --stack-file=${{ inputs.stack-file }}
+    - --environment-variables=${{ inputs.environment-variables }}
+    - --prune=${{ inputs.prune }}
+    - --pull-image=${{ inputs.pull-image }}
+    - --access=${{ inputs.access }}
+    - --teams=${{ inputs.teams }}
+
+# Definicja wszystkich wejść
+inputs:
+  portainer-host:
+    description: 'Portainer host (e.g. your.portainer.io)'
+    required: true
+  api-key:
+    description: 'Portainer API Key (X-API-Key) or leave empty to use username/password.'
+    required: false
+  username:
+    description: 'Portainer username (if api-key is not used).'
+    required: false
+  password:
+    description: 'Portainer password (if api-key is not used).'
+    required: false
+  stack-name:
+    description: 'Name of the stack to create or update.'
+    required: true
+  endpoint-name:
+    description: 'Name of the Portainer endpoint to deploy to (e.g., "local").'
+    required: true
+    default: 'local'
+  deployment-method:
+    description: 'Deployment method: repository or string'
+    required: true
+    default: 'repository'
+  # ... (Definicje pozostałych flag jako inputs)
+  repository-url:
+    description: 'Git repository URL for repository mode.'
+    required: false
+  repository-username:
+    description: 'Username for private repository access (e.g., GitHub username).'
+    required: false
+  repository-password:
+    description: 'Password or Personal Access Token (PAT) for private repository access.'
+    required: false
+
+  # Dodatkowe flagi
+  prune:
+    description: 'Set to true to prune unused services on update.'
+    required: false
+    default: 'false'
+  pull-image:
+    description: 'Set to true to pull latest images on update.'
+    required: false
+    default: 'true'
+  access:
+    description: 'Access control: public | teams | admin'
+    required: false
+    default: 'admin'
+  teams:
+    description: 'Comma-separated teams names (used when access=teams).'
+    required: false
