@@ -4,11 +4,9 @@ WORKDIR /app
 
 RUN apk add --no-cache git
 
-COPY go.mod ./
-RUN go mod download
-
 COPY . .
-
+RUN go mod tidy
+RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /portainer-deploy ./cmd/deploy
 
 FROM alpine:latest
