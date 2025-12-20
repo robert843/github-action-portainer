@@ -341,44 +341,43 @@ func doRequest(method, url, authHeaderKey, authHeaderValue string, body interfac
 }
 
 // find endpoint id by name
-func findEndpointID(baseURL, authKey, authVal, name string) (int, error) {
-	resp, err := doRequest("GET", baseURL+"/endpoints", authKey, authVal, nil)
+func findEndpointID(baseURL, authKey, authVal, endpointName string) (int, error) {
+	params := url.Values{}
+	params.Set("start", "1")
+	params.Set("limit", "10")
+	params.Set("order", "asc")
+	params.Set("search", endpointName)
+	params.Set("excludeSnapshotRaw", "true")
+
+	reqURL := baseURL + "/endpoints?" + params.Encode()
+
+	resp, err := doRequest("GET", reqURL, authKey, authVal, nil)
 	if err != nil {
 		return 0, err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
 		return 0, fmt.Errorf("list endpoints failed: %s", string(b))
 	}
-	var endpoints []map[string]any
+
+	var endpoints []struct {
+		ID   int    `json:"Id"`
+		Name string `json:"Name"`
+	}
+
 	if err := json.NewDecoder(resp.Body).Decode(&endpoints); err != nil {
 		return 0, err
 	}
-	for _, e := range endpoints {
-		// name field may be "Name" or "name"
-		if n, ok := e["Name"].(string); ok && n == name {
-			if idf, ok2 := e["Id"].(float64); ok2 {
-				return int(idf), nil
-			}
-		}
-		if _, ok := e["Name"].(string); ok && name == "" {
-			// fallback (first)
-			if idf, ok2 := e["Id"].(float64); ok2 {
-				return int(idf), nil
-			}
-		}
+
+	if len(endpoints) == 0 {
+		return 0, fmt.Errorf("endpoint '%s' not found", endpointName)
 	}
-	// try also "Name" lowercase
-	for _, e := range endpoints {
-		if n, ok := e["name"].(string); ok && n == name {
-			if idf, ok2 := e["id"].(float64); ok2 {
-				return int(idf), nil
-			}
-		}
-	}
-	return 0, fmt.Errorf("endpoint '%s' not found", name)
+
+	return endpoints[0].ID, nil
 }
+
 
 // list stacks and find by name
 func findStack(baseURL, authKey, authVal, name string) (int, bool, error) {
