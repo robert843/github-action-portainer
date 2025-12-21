@@ -451,6 +451,11 @@ func updateStackGit(baseURL, authKey, authVal string, stackID int, endpointID in
 		Prune:     prune,
 		PullImage: pull,
 	}
+	if repositoryUser != "" && repositoryPass != "" {
+		req.RepositoryAuthentication = true
+		req.RepositoryUsername = repositoryUser
+		req.RepositoryPassword = repositoryPass
+	}
 	// include endpointId as query param for Portainer compatibility
 	url := fmt.Sprintf("%s/stacks/%d/git?endpointId=%d", baseURL, stackID, endpointID)
 	fmt.Println(url)
