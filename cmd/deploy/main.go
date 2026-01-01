@@ -523,7 +523,6 @@ func updateStackGit(baseURL, authKey, authVal string, stackID int, endpointID in
 
 	// Redeploy z aktualizacją konfiguracji w jednym wywołaniu
 	url := fmt.Sprintf("%s/stacks/%d/git/redeploy?endpointId=%d", baseURL, stackID, endpointID)
-	fmt.Println("Updating and redeploying stack:", url)
 
 	resp, err := doRequest("PUT", url, authKey, authVal, req)
 	if err != nil {
