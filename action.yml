@@ -23,6 +23,7 @@ runs:
     - ${{ inputs.compose-file-path && format('--compose-file-path={0}', inputs.compose-file-path) || '' }}
     - ${{ inputs.stack-file && format('--stack-file={0}', inputs.stack-file) || '' }}
     - ${{ inputs.environment-variables && format('--environment-variables={0}', inputs.environment-variables) || '' }}
+    - ${{ inputs.env-file && format('--env-file={0}', inputs.env-file) || '' }}
     - ${{ inputs.auto-update && format('--auto-update={0}', inputs.auto-update) || '' }}
     - ${{ inputs.auto-update-interval && format('--auto-update-interval={0}', inputs.auto-update-interval) || '' }}
     - ${{ inputs.teams && format('--teams={0}', inputs.teams) || '' }}
@@ -86,6 +87,9 @@ inputs:
   # --- OPTIONS ---
   environment-variables:
     description: 'JSON array of environment variables, e.g. [{"name":"FOO","value":"bar"}].'
+    required: false
+  env-file:
+    description: 'Path to .env file to load environment variables from'
     required: false
   prune:
     description: 'Set to true to prune unused services on update.'

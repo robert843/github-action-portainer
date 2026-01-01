@@ -44,6 +44,7 @@ var (
 
 	// options
 	envVarsJSON        string
+	envFile            string
 	prune              bool
 	pullImage          bool
 	autoUpdate         bool
@@ -154,6 +155,12 @@ func main() {
 
 	// extras
 	root.Flags().StringVar(&envVarsJSON, "environment-variables", "[]", "JSON array of environment variables, e.g. '[{\"name\":\"FOO\",\"value\":\"bar\"}]'")
+	root.Flags().StringVar(
+    	&envFile,
+    	"env-file",
+    	"",
+    	"Path to .env file (used if --environment-variables is empty)",
+    )
 	root.Flags().BoolVar(&prune, "prune", false, "Prune unused services on update")
 	root.Flags().BoolVar(&pullImage, "pull-image", true, "Pull latest images on update")
 	root.Flags().BoolVar(&autoUpdate, "auto-update", false, "Enable auto-update for repository stacks")
@@ -167,6 +174,44 @@ func main() {
 	if err := root.Execute(); err != nil {
 		log.Fatal(err)
 	}
+}
+func parseEnvFile(path string) ([]EnvVar, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var envs []EnvVar
+	lines := strings.Split(string(data), "\n")
+
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// optional: allow "export KEY=value"
+		line = strings.TrimPrefix(line, "export ")
+
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid env line %d: %s", i+1, line)
+		}
+
+		key := strings.TrimSpace(parts[0])
+		val := strings.TrimSpace(parts[1])
+
+		// strip quotes
+		val = strings.Trim(val, `"'`)
+
+		envs = append(envs, EnvVar{
+			Name:  key,
+			Value: val,
+		})
+	}
+
+	return envs, nil
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -193,11 +238,28 @@ func run(cmd *cobra.Command, args []string) {
 		authHeaderValue = "Bearer " + jwt
 	}
 
-	// parse env vars
-	var envVars []EnvVar
-	if err := json.Unmarshal([]byte(envVarsJSON), &envVars); err != nil {
-		log.Printf("⚠️ cannot parse environment variables JSON: %v", err)
-	}
+    var envVars []EnvVar
+
+    jsonProvided := strings.TrimSpace(envVarsJSON) != "" && strings.TrimSpace(envVarsJSON) != "[]"
+
+    switch {
+    case jsonProvided:
+        if err := json.Unmarshal([]byte(envVarsJSON), &envVars); err != nil {
+            log.Fatalf("❌ invalid --environment-variables JSON: %v", err)
+        }
+        log.Printf("Loaded %d env vars from JSON\n", len(envVars))
+
+    case envFile != "":
+        var err error
+        envVars, err = parseEnvFile(envFile)
+        if err != nil {
+            log.Fatalf("❌ cannot parse env-file '%s': %v", envFile, err)
+        }
+        log.Printf("Loaded %d env vars from env-file %s\n", len(envVars), envFile)
+
+    default:
+        log.Printf("No environment variables provided\n")
+    }
 
 	// find endpoint id by name
 	endpointID, err := findEndpointID(baseURL, authHeaderKey, authHeaderValue, endpointName)
