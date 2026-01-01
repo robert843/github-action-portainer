@@ -518,10 +518,8 @@ func updateStackGit(baseURL, authKey, authVal string, stackID int, endpointID in
 		req.RepositoryUsername = repositoryUser
 		req.RepositoryPassword = repositoryPass
 	}
-	// ZMIANA: używamy endpointa /git/redeploy zamiast /git
 	url := fmt.Sprintf("%s/stacks/%d/git/redeploy?endpointId=%d", baseURL, stackID, endpointID)
-	fmt.Println(url)
-	resp, err := doRequest("PUT", url, authKey, authVal, req)  // PUT zamiast POST
+	resp, err := doRequest("PUT", url, authKey, authVal, req)
 	if err != nil {
 		return err
 	}
