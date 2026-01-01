@@ -509,25 +509,34 @@ func createStackGit(baseURL, authKey, authVal string, endpointID int, env []EnvV
 // update stack from git (trigger git update)
 func updateStackGit(baseURL, authKey, authVal string, stackID int, endpointID int, env []EnvVar, prune, pull bool) error {
 	req := StackUpdateRequest{
-		Env:       env,
-		Prune:     prune,
-		PullImage: pull,
+		Env:                     env,
+		Prune:                   prune,
+		PullImage:               pull,
+		RepositoryReferenceName: repositoryRef,
 	}
+
 	if repositoryUser != "" && repositoryPass != "" {
 		req.RepositoryAuthentication = true
 		req.RepositoryUsername = repositoryUser
 		req.RepositoryPassword = repositoryPass
 	}
+
+	// Redeploy z aktualizacją konfiguracji w jednym wywołaniu
 	url := fmt.Sprintf("%s/stacks/%d/git/redeploy?endpointId=%d", baseURL, stackID, endpointID)
+	fmt.Println("Updating and redeploying stack:", url)
+
 	resp, err := doRequest("PUT", url, authKey, authVal, req)
 	if err != nil {
-		return err
+		return fmt.Errorf("update/redeploy failed: %v", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("update stack (git) failed: %s", string(b))
+		return fmt.Errorf("update/redeploy failed: %s", string(b))
 	}
+
+	log.Println("Stack updated and redeployed")
 	return nil
 }
 
